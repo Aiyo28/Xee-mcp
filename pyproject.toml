@@ -1,0 +1,73 @@
+[project]
+name = "mcp-xee"
+version = "0.1.0"
+description = "MCP server for X (Twitter): search and read user timelines from Claude / ChatGPT / any MCP client. No paid API — twikit cookie auth. Naming: X + See = Xee."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "Ayal Nogovitsyn", email = "hello@ayal.tech" },
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "twitter",
+    "x",
+    "x-twitter",
+    "claude",
+    "anthropic",
+    "twikit",
+    "mcp-server",
+    "claude-desktop",
+    "claude-code",
+    "ai-tools",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries",
+]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "twikit>=2.0.0",
+    "pydantic>=2.0.0",
+    "click>=8.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.5.0",
+]
+
+[project.scripts]
+mcp-xee = "mcp_xee.server:main"
+
+[project.urls]
+Homepage = "https://github.com/Aiyo28/mcp-xee"
+Repository = "https://github.com/Aiyo28/mcp-xee"
+Issues = "https://github.com/Aiyo28/mcp-xee/issues"
+Funding = "https://paypal.me/aiyo28"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mcp_xee"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
