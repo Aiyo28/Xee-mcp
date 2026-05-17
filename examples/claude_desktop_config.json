@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "xee-mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "/ABSOLUTE/PATH/TO/Xee-mcp",
+        "xee-mcp"
+      ],
+      "env": {
+        "XEE_MCP_COOKIES": "/ABSOLUTE/PATH/TO/cookies.json"
+      }
+    }
+  }
+}
