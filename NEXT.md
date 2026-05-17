@@ -2,16 +2,23 @@
 
 > Resume line for the next session. Under 15 lines. Updated by `/session --end`.
 
-**Status (2026-05-17 s1):** Rename `mcp-xee` → `Xee-mcp` complete (vault [D]#4 executed). GH repo `Aiyo28/Xee-mcp`, local `~/Documents/Developer/Xee-mcp/`, Python module `xee_mcp`, PyPI distro target `xee-mcp`, CLI `xee-mcp`, env vars `XEE_MCP_COOKIES`/`XEE_MCP_DEBUG`, FastMCP server name `"xee-mcp"`. Spec for rename+deploy filed as github.com/Aiyo28/Xee-mcp/issues/2; #1 (v0.1 ship-readiness) still open and unchanged. Smoke tests 6/6 (added `test_server_name_is_xee_mcp`). Vault context at `~/Documents/Developer/knowledge-os/Projects/Xee-mcp/_context.md`.
+**Status (2026-05-17 s2):** Phase A (rename) + Phase B (issue #1 items) complete. GH repo `Aiyo28/Xee-mcp`, Python module `xee_mcp`, PyPI distro target `xee-mcp`. CI green on 3.11/3.12/3.13 matrix (`setup-uv@v6`). Pytest 14/14 (smoke 6 + serialize 5 + cookies_path_tilde 3). Ruff clean. Shipped: scripts (login_and_save, convert_cookies), docs (cookies, release), examples (claude_desktop, claude_code), `XEE_MCP_DEBUG` logger, `COOKIE_HINT` error wrapping in `tools.py`. Commits `df65d80` (rename), `74adba8` (Phase B), `799aa79`+`22b9256` (CI fixes). Issues #1 + #2 open under new repo. Vault context at `~/Documents/Developer/knowledge-os/Projects/Xee-mcp/_context.md`.
 
 ## Continue
-- Phase B (issue #1 items, 11 modules): `scripts/login_and_save.py`, `scripts/convert_cookies.py`, `docs/cookies.md`, `docs/release.md`, `examples/claude_desktop_config.json`, `examples/claude_code_config.md`, `.github/workflows/ci.yml`, `XEE_MCP_DEBUG` logger, tool-error wrapping with cookie hint, `tests/test_serialize.py` + `tests/test_cookies_path_tilde.py`, README `pip install xee-mcp` line (gated on Phase C).
-- Phase C (deploy): verify PyPI account `aiyo28`, local pre-tag smoke against fresh @Aiyo91 cookies, tag v0.1.0, `gh release create`, `uv build && uv publish`, fresh-venv install smoke.
+- **Phase C (deploy):**
+  1. Verify PyPI account `aiyo28` — login + scoped token export as `UV_PUBLISH_TOKEN`.
+  2. Local pre-tag smoke against fresh @Aiyo91 cookies (script in `docs/release.md`).
+  3. `git tag v0.1.0 && git push --tags`.
+  4. `gh release create v0.1.0 --generate-notes` (edit body).
+  5. `UV_PUBLISH_TOKEN=… uv publish` after `uv build`.
+  6. Fresh-venv install smoke + Claude Desktop handshake verify.
+  7. Append README "Install via `pip install xee-mcp`" line; commit.
+  8. Close #1 + #2 with commit refs; append [D]#7 (v0.1.0 shipped) to vault.
 
 ## Decide (next session)
-- Phase B in one commit or sliced? Default: sliced (scripts → CI → debug → tests → docs).
-- v0.1.0 tag date — today or after Phase B fully green?
+- Trusted publishing (GitHub OIDC) vs scoped API token for `uv publish`? Default: scoped token at v0.1; OIDC at v0.2.
+- v0.1.0 tag today or after fresh-cookie smoke?
 
 ## Blocked
-- PyPI account `aiyo28` verification (login + token / trusted publisher setup).
-- Fresh @Aiyo91 X cookies for local pre-tag verify.
+- PyPI account `aiyo28` verification (login + token).
+- Fresh @Aiyo91 X cookies for pre-tag smoke (`docs/release.md` script).
