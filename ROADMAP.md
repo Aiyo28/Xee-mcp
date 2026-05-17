@@ -1,4 +1,4 @@
-# mcp-xee Roadmap
+# Xee-mcp Roadmap
 
 > Public scope. Discipline: read-only forever. Posting belongs in a separate repo.
 
@@ -15,7 +15,7 @@
 - `replies(post_id, limit)` — read replies on a thread
 - `bookmarks(limit)` — read your own bookmarks (auth-required)
 - Cookie health-check tool — flag near-expiry / bot-detection signals before tools fail
-- PyPI publish (`pip install mcp-xee`)
+- PyPI publish (`pip install xee-mcp`)
 - MCP Server Registry submission
 
 ## v0.3 — conditional
@@ -26,11 +26,11 @@
 ## Out of scope (forever, unless invalidated)
 
 - Posting / DMs / likes / retweets. Different threat model. New repo if ever.
-- Web dashboard. mcp-xee is a primitive, not a product.
+- Web dashboard. Xee-mcp is a primitive, not a product.
 - Paid X API integration. Wrong shape for this tool's audience.
 
 ## Invalidation triggers
 
 - twikit cookie auth bot-detected within first 50 calls in real use → swap twscrape, keep tool surface (D1 in vault).
-- mcp-xee scope grows to ≥3 global-platform connectors AND wants Yzel's vault → extract `yzel-core` shared library or fold into Yzel (D1 fallback).
+- Xee-mcp scope grows to ≥3 global-platform connectors AND wants Yzel's vault → extract `yzel-core` shared library or fold into Yzel (D1 fallback).
 - X reverses Feb 2026 pay-per-use pricing back to free tier → revisit official API path; cookie auth may become unnecessary.

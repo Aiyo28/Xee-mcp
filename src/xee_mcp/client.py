@@ -1,4 +1,4 @@
-"""twikit client wrapper. Loads cookies from MCP_XEE_COOKIES path, exposes a single async client."""
+"""twikit client wrapper. Loads cookies from XEE_MCP_COOKIES path, exposes a single async client."""
 
 from __future__ import annotations
 
@@ -12,10 +12,10 @@ _client: Client | None = None
 
 
 def cookies_path() -> Path:
-    raw = os.environ.get("MCP_XEE_COOKIES")
+    raw = os.environ.get("XEE_MCP_COOKIES")
     if not raw:
         raise RuntimeError(
-            "MCP_XEE_COOKIES env var not set. "
+            "XEE_MCP_COOKIES env var not set. "
             "Point it at a twikit-format cookies JSON file. "
             "See README quickstart."
         )
