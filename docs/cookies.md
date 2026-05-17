@@ -85,3 +85,8 @@ Re-run whichever path you used originally. The MCP server picks up the new file 
 - **`XEE_MCP_COOKIES env var not set`** — export the variable in the same shell that launches your MCP client, or put it in the `env` block of your `claude_desktop_config.json` entry (see `examples/claude_desktop_config.json`).
 - **`Cookie file not found: …`** — path expansion of `~` is supported, but the file must exist. Re-check the path you exported.
 - **`Cookie auth failed. Your cookie file may be missing, expired, or bot-detected.`** — twikit got a non-auth response from X. First try regenerating the cookie file. If still failing, the account may be bot-detection-flagged — switch accounts or wait it out.
+- **`login failed: Couldn't get KEY_BYTE indices`** (from `scripts/login_and_save.py`) — twikit's `js2py`-based `ui_metrics` computation failed on your Python install. Retry with `--no-ui-metrics`:
+  ```bash
+  python scripts/login_and_save.py --no-ui-metrics --out ~/.config/xee-mcp/cookies.json
+  ```
+  If it still fails, fall back to **Path B (browser export)** — it bypasses the login + ui_metrics path entirely.

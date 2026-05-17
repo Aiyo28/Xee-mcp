@@ -7,7 +7,11 @@ written to disk except as a session cookie inside the output JSON.
 Usage:
     python scripts/login_and_save.py --out ~/.config/xee-mcp/cookies.json
 
-See docs/cookies.md for the alternative browser-export path (no password handling).
+Pass --no-ui-metrics if you hit twikit's "Couldn't get KEY_BYTE indices" error
+(js2py struggles to compute X's obfuscated ui_metrics blob on some Python
+versions / installs). See docs/cookies.md.
+
+If login still fails, fall back to scripts/convert_cookies.py (browser export).
 """
 
 from __future__ import annotations
@@ -22,9 +26,20 @@ from pathlib import Path
 from twikit import Client
 
 
-async def _login_and_save(handle: str, email: str | None, password: str, out: Path) -> None:
+async def _login_and_save(
+    handle: str,
+    email: str | None,
+    password: str,
+    out: Path,
+    enable_ui_metrics: bool,
+) -> None:
     client = Client(language="en-US")
-    await client.login(auth_info_1=handle, auth_info_2=email, password=password)
+    await client.login(
+        auth_info_1=handle,
+        auth_info_2=email,
+        password=password,
+        enable_ui_metrics=enable_ui_metrics,
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     client.save_cookies(str(out))
     os.chmod(out, 0o600)
@@ -37,6 +52,12 @@ def main() -> int:
         type=Path,
         default=Path("~/.config/xee-mcp/cookies.json").expanduser(),
         help="Output path for the cookie JSON (default: ~/.config/xee-mcp/cookies.json)",
+    )
+    p.add_argument(
+        "--no-ui-metrics",
+        action="store_true",
+        help="Disable twikit's js2py ui_metrics computation. Use if you hit "
+        "'Couldn't get KEY_BYTE indices'. May very slightly raise bot-detection risk.",
     )
     args = p.parse_args()
 
@@ -52,9 +73,18 @@ def main() -> int:
 
     out = args.out.expanduser()
     try:
-        asyncio.run(_login_and_save(handle, email, password, out))
+        asyncio.run(
+            _login_and_save(handle, email, password, out, not args.no_ui_metrics)
+        )
     except Exception as e:
-        print(f"login failed: {e}", file=sys.stderr)
+        msg = str(e)
+        hint = ""
+        if "KEY_BYTE" in msg:
+            hint = (
+                "\nhint: js2py failed to compute X's ui_metrics blob. "
+                "Retry with --no-ui-metrics, or use scripts/convert_cookies.py."
+            )
+        print(f"login failed: {e}{hint}", file=sys.stderr)
         return 1
 
     print(f"Saved cookies to {out} (chmod 600)")
