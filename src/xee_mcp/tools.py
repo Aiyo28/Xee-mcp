@@ -4,7 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
-from .client import get_client
+from .client import get_client, log
+
+
+COOKIE_HINT = (
+    "Cookie auth failed. Your cookie file may be missing, expired, or bot-detected. "
+    "See docs/cookies.md to regenerate."
+)
 
 
 def _serialize(tweet: Any) -> dict[str, Any]:
@@ -27,6 +33,11 @@ def _serialize(tweet: Any) -> dict[str, Any]:
     }
 
 
+def _wrap_twikit_error(exc: Exception) -> RuntimeError:
+    """Re-raise twikit exceptions with a cookie-hint preamble so MCP clients see actionable text."""
+    return RuntimeError(f"{COOKIE_HINT} Underlying error: {type(exc).__name__}: {exc}")
+
+
 async def search(query: str, limit: int = 20) -> list[dict[str, Any]]:
     """Search X posts by keyword.
 
@@ -38,7 +49,11 @@ async def search(query: str, limit: int = 20) -> list[dict[str, Any]]:
         List of post dicts: id, text, author, author_name, created_at, url, engagement counts.
     """
     client = await get_client()
-    results = await client.search_tweet(query, "Latest", count=limit)
+    log.debug("search query=%r limit=%d", query, limit)
+    try:
+        results = await client.search_tweet(query, "Latest", count=limit)
+    except Exception as exc:
+        raise _wrap_twikit_error(exc) from exc
     return [_serialize(t) for t in results[:limit]]
 
 
@@ -53,6 +68,10 @@ async def user_tweets(handle: str, limit: int = 20) -> list[dict[str, Any]]:
         List of post dicts: id, text, author, author_name, created_at, url, engagement counts.
     """
     client = await get_client()
-    user = await client.get_user_by_screen_name(handle.lstrip("@"))
-    tweets = await user.get_tweets("Tweets", count=limit)
+    log.debug("user_tweets handle=%r limit=%d", handle, limit)
+    try:
+        user = await client.get_user_by_screen_name(handle.lstrip("@"))
+        tweets = await user.get_tweets("Tweets", count=limit)
+    except Exception as exc:
+        raise _wrap_twikit_error(exc) from exc
     return [_serialize(t) for t in tweets[:limit]]
