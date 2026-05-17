@@ -1,10 +1,10 @@
-# mcp-xee
+# Xee-mcp
 
 > MCP (Model Context Protocol) server that exposes two read-only tools for X (Twitter) to AI assistants: `search` and `user_tweets`. Uses cookie-based authentication via twikit — no paid X API, no per-request fees. Naming: X + See = Xee. Single-account, read-only, focused. MIT licensed, donation-only via paypal.me/aiyo28.
 
 ## What it does
 
-`mcp-xee` lets Claude, ChatGPT, or any MCP-compatible AI assistant search X posts and read user timelines without paying for the X API. It is a deliberately minimal alternative to mcp-twikit, official xmcp, and other Twitter/X MCP servers.
+`Xee-mcp` lets Claude, ChatGPT, or any MCP-compatible AI assistant search X posts and read user timelines without paying for the X API. It is a deliberately minimal alternative to mcp-twikit, official xmcp, and other Twitter/X MCP servers.
 
 ## Tools
 
@@ -13,15 +13,15 @@
 
 ## Auth
 
-- twikit cookie file (single account). Path via `MCP_XEE_COOKIES` env var.
+- twikit cookie file (single account). Path via `XEE_MCP_COOKIES` env var.
 - No X API key. No OAuth. No rate-limit billing.
 - Tradeoff: cookie auth is brittle. Bot-detection risk exists at higher volume.
 
 ## Install
 
 ```
-git clone https://github.com/Aiyo28/mcp-xee.git
-cd mcp-xee
+git clone https://github.com/Aiyo28/Xee-mcp.git
+cd Xee-mcp
 uv sync
 ```
 
@@ -32,10 +32,10 @@ Add to `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "mcp-xee": {
+    "xee-mcp": {
       "command": "uv",
-      "args": ["run", "--directory", "/path/to/mcp-xee", "mcp-xee"],
-      "env": { "MCP_XEE_COOKIES": "/path/to/cookies.json" }
+      "args": ["run", "--directory", "/path/to/Xee-mcp", "xee-mcp"],
+      "env": { "XEE_MCP_COOKIES": "/path/to/cookies.json" }
     }
   }
 }
@@ -50,9 +50,9 @@ Add to `claude_desktop_config.json`:
 
 ## Repo layout
 
-- `src/mcp_xee/server.py` — MCP server entrypoint, tool registration
-- `src/mcp_xee/client.py` — twikit wrapper, cookie loading
-- `src/mcp_xee/tools.py` — `search` and `user_tweets` implementations
+- `src/xee_mcp/server.py` — MCP server entrypoint, tool registration
+- `src/xee_mcp/client.py` — twikit wrapper, cookie loading
+- `src/xee_mcp/tools.py` — `search` and `user_tweets` implementations
 - `tests/` — pytest suite
 - `README.md` — public-facing pitch
 - `ROADMAP.md` — public scope evolution

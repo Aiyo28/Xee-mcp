@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
-
 from mcp.server.fastmcp import FastMCP
 
 from .tools import search as search_impl
 from .tools import user_tweets as user_tweets_impl
 
 
-mcp = FastMCP("mcp-xee")
+mcp = FastMCP("xee-mcp")
 
 
 @mcp.tool()
@@ -33,7 +31,7 @@ async def user_tweets(handle: str, limit: int = 20) -> list[dict]:
 
 
 def main() -> None:
-    """Entrypoint for the `mcp-xee` console script."""
+    """Entrypoint for the `xee-mcp` console script."""
     mcp.run()
 
 
