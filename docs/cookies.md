@@ -54,15 +54,48 @@ The converter:
 
 ---
 
+## Path C — manual DevTools paste (no extension, no script)
+
+Use this if you don't want to install a Chrome extension or run the login script. ~30 seconds.
+
+1. Open https://x.com in Chrome and confirm you're logged in.
+2. Press **Cmd+Opt+I** (macOS) or **Ctrl+Shift+I** (Linux/Windows) to open DevTools.
+3. Go to **Application** tab → **Storage → Cookies → https://x.com**.
+4. Find these two rows and copy each **Value** column entry:
+   - `auth_token`
+   - `ct0`
+5. Create the cookie file with those two values:
+
+```bash
+mkdir -p ~/.config/xee-mcp
+cat > ~/.config/xee-mcp/cookies.json <<'JSON'
+{
+  "auth_token": "PASTE_auth_token_VALUE_HERE",
+  "ct0": "PASTE_ct0_VALUE_HERE"
+}
+JSON
+chmod 600 ~/.config/xee-mcp/cookies.json
+```
+
+Replace both `PASTE_..._HERE` placeholders with the real values you copied. Save.
+
+This is exactly what the extension exports — the extension is just a batch-copy of the same DevTools data. twikit only requires `auth_token` + `ct0` to authenticate read endpoints.
+
+**When to prefer C:** zero-trust setups, you don't want browser extensions, or Path A failed with `KEY_BYTE` and you don't want to install anything else. **When to avoid C:** you don't have a logged-in Chrome session handy (use Path A on a headless box instead).
+
+> Note: v0.2 will ship `xee-mcp init` that reads Chrome's local cookie store directly via `browser-cookie3` — zero manual steps. Path C is the v0.1 stand-in.
+
+---
+
 ## Security tradeoffs
 
-| Concern | Path A (login) | Path B (browser) |
-|---|---|---|
-| Password typed into local Python | Yes | No |
-| Browser extension trust required | No | Yes (Get cookies.txt LOCALLY is open-source — verify the build you install) |
-| Output file format | Same (`{name: value}` JSON) | Same |
-| Output file permissions | `chmod 600` | `chmod 600` |
-| Rotation cost | Re-run script | Re-export + re-convert |
+| Concern | Path A (login) | Path B (browser) | Path C (DevTools) |
+|---|---|---|---|
+| Password typed into local Python | Yes | No | No |
+| Browser extension trust required | No | Yes (Get cookies.txt LOCALLY is open-source — verify the build you install) | No |
+| Output file format | Same (`{name: value}` JSON) | Same | Same |
+| Output file permissions | `chmod 600` | `chmod 600` | `chmod 600` (manual) |
+| Rotation cost | Re-run script | Re-export + re-convert | Re-copy from DevTools |
 
 Either way, **the cookie file IS the session.** Anyone with read access to it can act as your X account for the duration of that session. Keep it out of git, dotfile sync, Dropbox, and any directory that gets indexed by Spotlight/desktop search agents.
 

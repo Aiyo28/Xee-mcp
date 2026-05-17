@@ -12,10 +12,10 @@
 
 ## v0.2 — next
 
+- `xee-mcp init` — zero-friction cookie setup via `browser-cookie3`. Reads Chrome's local cookie store directly. No extension, no DevTools paste, no password into a script. Promoted to v0.1.x patch if ≥3 GH issues report Path A failure or setup friction.
 - `replies(post_id, limit)` — read replies on a thread
 - `bookmarks(limit)` — read your own bookmarks (auth-required)
 - Cookie health-check tool — flag near-expiry / bot-detection signals before tools fail
-- PyPI publish (`pip install xee-mcp`)
 - MCP Server Registry submission
 
 ## v0.3 — conditional
