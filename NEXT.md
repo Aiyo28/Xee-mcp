@@ -1,28 +1,21 @@
 # NEXT — Xee-mcp
 
-> Resume line for the next session. Under 15 lines. Updated by `/session --end`.
+> Resume line for the next session. Under 15 lines.
 
-**Status (2026-05-20):** 🟢 UNPAUSED — reframed. The cookie acquisition UX (extension OR DevTools paste) is the OSS moat-killer, not the ship blocker. An MCP server that requires "install a Chrome extension first" loses plug-and-play before the user reaches the README's second paragraph. Scope shift: `xee-mcp init` via `browser-cookie3` promoted from v0.2 → **v0.1 blocker**. Vault [D]#9 (supersedes [D]#8).
+**Status (2026-05-20):** 🟡 SHIP-READY — v0.1.0 scoped down to thin MCP aggregation wrapper per founder call. T1 (cookie UX via `xee-mcp init`) done + committed `05f1195`. Read tools (search, user_tweets) ship in **degraded mode**: error path now distinguishes upstream-lib breakage from cookie failure (`tools.py:_wrap_twikit_error` routes on `UPSTREAM_SIGNATURES`), so users get accurate signal. README "Status (v0.1.0)" section sets the expectation up front. We don't fork twikit, vendor patches, or build our own scraper — when upstream ships, we bump the dep. Vault [D]#9 (no [D]#10 needed — this is the application of "less maintenance" principle, not a new decision).
 
-**Two independent tracks — work in parallel:**
+**Why ship degraded now:** init UX is the value users feel first; shipping it gets people configured so the day upstream lands a parser fix, tools just start working. Both repos (twikit + twscrape) are ~13 months dead on code; filing upstream issues is cheap insurance, not a plan.
 
-## Track 1 — Cookie UX (moat work, unblocks regardless of upstream)
-1. Add `browser-cookie3>=0.20.0` dep (`pyproject.toml`).
-2. New `src/xee_mcp/cli.py` subcommand `xee-mcp init` — reads Chrome cookie store (macOS Keychain prompt is acceptable), writes `~/.config/xee-mcp/cookies.json` with `auth_token` + `ct0` only, `chmod 600`. Browser flag: `--browser chrome|brave|arc|firefox|safari` (default chrome).
-3. `docs/cookies.md` — promote `init` to Path A (top of doc); demote login script to Path D (advanced/headless).
-4. README quickstart — replace 4-step DevTools dance with `uv run xee-mcp init && uv run xee-mcp serve`.
-5. Tests — mock `browser_cookie3.chrome()` fixture; verify writer path + permissions.
-
-## Track 2 — Upstream lib breakage (ship blocker)
-- twikit 2.3.3 still broken (`ON_DEMAND_FILE_REGEX` stale vs X webpack); twscrape 0.17.0 still broken (parser `IndexError`).
-- File upstream issues from `docs/upstream-issues.md` drafts (currently un-filed — do this in T2.1 to start the clock).
-- Optional fallback to investigate: vendor `x-client-transaction-id` PyPI package directly, bypass twikit's stale module. Spike before deciding.
+## Phase C (ship) — left to do
+1. File the two upstream issues from `docs/upstream-issues.md` drafts (twikit + twscrape). Low cost, just-in-case.
+2. `git tag v0.1.0 && gh release create v0.1.0 --generate-notes`.
+3. USER runs `uv publish` (PyPI token in their shell, never in repo or env).
+4. README "Status" section will need updating once upstream resolves — bump twikit dep, delete the degraded-mode paragraph, ship v0.1.1.
 
 ## When resuming
-1. `~/Documents/Developer/Xee-mcp` — repo at master `f2abcd4`.
-2. Start T1 (UX) — it's value-additive even before upstream resolves; ship `xee-mcp init` as v0.1.0 even if read tools degrade gracefully with "cookies OK, but upstream parser broken — track issue #N" message.
-3. Track 2 in parallel: file upstream issues today.
+1. `~/Documents/Developer/Xee-mcp` — master at `05f1195` (T1) plus uncommitted error-routing + README status (this turn).
+2. Commit current diff (`tools.py`, `tests/test_error_routing.py`, `README.md`, `NEXT.md`), then file upstream issues, then tag.
 
-## Upstream issues to file (drafts in `docs/upstream-issues.md`)
-- twikit: `ON_DEMAND_FILE_REGEX` stale vs current X webpack chunk format
-- twscrape: response parser IndexError on UserByScreenName + SearchTimeline
+## Optional cleanup (manual)
+- `unset UV_PUBLISH_TOKEN` if still in shell env from May.
+- x.com → Settings → Sessions → Log out of all other sessions — rotates the cookies in the May 17 screenshot if not already done.
