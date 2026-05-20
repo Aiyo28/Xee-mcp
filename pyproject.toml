@@ -39,6 +39,7 @@ dependencies = [
     "twikit>=2.0.0",
     "pydantic>=2.0.0",
     "click>=8.0.0",
+    "browser-cookie3>=0.20.0",
 ]
 
 [project.optional-dependencies]
@@ -49,7 +50,7 @@ dev = [
 ]
 
 [project.scripts]
-xee-mcp = "xee_mcp.server:main"
+xee-mcp = "xee_mcp.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/Aiyo28/Xee-mcp"

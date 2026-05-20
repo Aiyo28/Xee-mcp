@@ -54,12 +54,14 @@ PyPI publish follows the first wave of feedback (`pip install xee-mcp`).
 
 ## Quickstart
 
-1. **Get an X account cookie file.** twikit reads cookies from a JSON file. Easiest path: log in to X in your browser, export cookies via [Get cookies.txt LOCALLY](https://chrome.google.com/webstore/detail/get-cookiestxt-locally) → convert to twikit format (one-line script in `docs/cookies.md`), or use twikit's `client.login(...)` once and `client.save_cookies(path)`.
+1. **Log in to x.com in Chrome** (or Brave / Arc / Firefox / Safari / Edge — any one).
 
-2. **Point Xee-mcp at the cookie file.**
+2. **One-shot cookie setup.** Reads your existing browser session — no extension, no DevTools paste, no password:
    ```bash
+   uv run xee-mcp init
    export XEE_MCP_COOKIES=~/.config/xee-mcp/cookies.json
    ```
+   On macOS Chrome / Brave / Edge you'll see one Keychain prompt — approve it. For other browsers use `--browser brave|arc|firefox|safari|edge`. Other setup paths (advanced / headless) are in [docs/cookies.md](docs/cookies.md).
 
 3. **Wire into Claude Desktop / Claude Code.** Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
    ```json

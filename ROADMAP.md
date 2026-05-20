@@ -7,12 +7,12 @@
 - `search(query, limit)` — keyword search across X posts
 - `user_tweets(handle, limit)` — recent posts from a handle
 - twikit cookie auth, single account
+- **`xee-mcp init` — zero-friction cookie setup via `browser-cookie3`.** Reads Chrome's local cookie store directly. No extension, no DevTools paste, no password. Promoted from v0.2 on 2026-05-20: extension/DevTools friction undermines the plug-and-play MCP promise — the moat is the setup UX, not just the $0 cost. (Vault [D]#9.)
 - Claude Desktop + Claude Code config examples
 - MIT, paypal.me/aiyo28 donation CTA
 
 ## v0.2 — next
 
-- `xee-mcp init` — zero-friction cookie setup via `browser-cookie3`. Reads Chrome's local cookie store directly. No extension, no DevTools paste, no password into a script. Promoted to v0.1.x patch if ≥3 GH issues report Path A failure or setup friction.
 - `replies(post_id, limit)` — read replies on a thread
 - `bookmarks(limit)` — read your own bookmarks (auth-required)
 - Cookie health-check tool — flag near-expiry / bot-detection signals before tools fail
