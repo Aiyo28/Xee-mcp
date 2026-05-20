@@ -10,6 +10,16 @@
 
 ---
 
+## Status (v0.1.0)
+
+`xee-mcp init` (cookie setup) works. `search` and `user_tweets` are **temporarily degraded** — they return a clear "upstream parser broken" error because [twikit](https://github.com/d60/twikit) (the underlying scrape library) can't parse X's current webpack chunk format to build the `X-Client-Transaction-Id` header. This is **not** a cookie problem — your auth is fine.
+
+This is upstream's repo to fix; we don't fork or maintain a patched scraper. When twikit ships a parser fix, bump the dep and these tools resume working with no code change on your side. See [docs/upstream-issues.md](docs/upstream-issues.md) for the technical details.
+
+Why ship now anyway: the setup UX (`xee-mcp init`) is the value users feel first. Shipping that lets people install, configure, and be ready — so the day upstream lands a fix, the tools just start working.
+
+---
+
 ## Why Xee-mcp
 
 Six MCP servers for X already exist. Most require the [paid X API](https://docs.x.com/x-api/getting-started/about-x-api) — pay-per-use since Feb 2026, ~$0.005 per read. For solo developers and OSS authors who just want to let Claude search what's being said about their work, that's wrong shape.

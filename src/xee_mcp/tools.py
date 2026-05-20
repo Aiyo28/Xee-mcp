@@ -9,8 +9,18 @@ from .client import get_client, log
 
 COOKIE_HINT = (
     "Cookie auth failed. Your cookie file may be missing, expired, or bot-detected. "
-    "See docs/cookies.md to regenerate."
+    "Try: xee-mcp init --force. See docs/cookies.md."
 )
+
+UPSTREAM_HINT = (
+    "Read tools are temporarily blocked by an upstream twikit issue against current X. "
+    "twikit's ON_DEMAND_FILE_REGEX cannot parse X's current webpack chunk format, so the "
+    "X-Client-Transaction-Id header cannot be built. Your cookies are fine — this is not "
+    "an auth problem. See docs/upstream-issues.md or the project NEXT.md for status. "
+    "When twikit ships a fix, bump the dep and these tools resume working with no code change."
+)
+
+UPSTREAM_SIGNATURES = ("KEY_BYTE", "key_byte", "x_client_transaction", "ON_DEMAND_FILE")
 
 
 def _serialize(tweet: Any) -> dict[str, Any]:
@@ -34,8 +44,16 @@ def _serialize(tweet: Any) -> dict[str, Any]:
 
 
 def _wrap_twikit_error(exc: Exception) -> RuntimeError:
-    """Re-raise twikit exceptions with a cookie-hint preamble so MCP clients see actionable text."""
-    return RuntimeError(f"{COOKIE_HINT} Underlying error: {type(exc).__name__}: {exc}")
+    """Re-raise twikit exceptions with an actionable preamble for MCP clients.
+
+    Distinguishes upstream-lib breakage (don't ask the user to re-auth) from genuine
+    cookie failures. Once twikit ships a parser fix, the upstream branch stops firing
+    and the cookie branch handles only real auth problems.
+    """
+    msg = f"{type(exc).__name__}: {exc}"
+    if any(sig in msg for sig in UPSTREAM_SIGNATURES):
+        return RuntimeError(f"{UPSTREAM_HINT} Underlying error: {msg}")
+    return RuntimeError(f"{COOKIE_HINT} Underlying error: {msg}")
 
 
 async def search(query: str, limit: int = 20) -> list[dict[str, Any]]:
