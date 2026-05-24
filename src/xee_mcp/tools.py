@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from .client import get_client, log
+from .hermes_tweet import fetch_hermes_tweets, should_use_hermes_tweet
 
 
 COOKIE_HINT = (
@@ -56,16 +57,21 @@ def _wrap_twikit_error(exc: Exception) -> RuntimeError:
     return RuntimeError(f"{COOKIE_HINT} Underlying error: {msg}")
 
 
-async def search(query: str, limit: int = 20) -> list[dict[str, Any]]:
+async def search(query: str, limit: int = 20, backend: str | None = None) -> list[dict[str, Any]]:
     """Search X posts by keyword.
 
     Args:
         query: Search query string. Supports X search syntax (from:, to:, since:, etc.).
         limit: Maximum number of posts to return. Default 20.
+        backend: Optional backend override. Use "hermes-tweet" for Hermes Tweet.
 
     Returns:
         List of post dicts: id, text, author, author_name, created_at, url, engagement counts.
     """
+    if should_use_hermes_tweet(backend):
+        log.debug("hermes tweet search query=%r limit=%d", query, limit)
+        return await fetch_hermes_tweets(query, limit)
+
     client = await get_client()
     log.debug("search query=%r limit=%d", query, limit)
     try:
@@ -75,16 +81,22 @@ async def search(query: str, limit: int = 20) -> list[dict[str, Any]]:
     return [_serialize(t) for t in results[:limit]]
 
 
-async def user_tweets(handle: str, limit: int = 20) -> list[dict[str, Any]]:
+async def user_tweets(handle: str, limit: int = 20, backend: str | None = None) -> list[dict[str, Any]]:
     """Read a user's recent posts.
 
     Args:
         handle: X handle without @. Example: "simonw".
         limit: Maximum number of posts to return. Default 20.
+        backend: Optional backend override. Use "hermes-tweet" for Hermes Tweet.
 
     Returns:
         List of post dicts: id, text, author, author_name, created_at, url, engagement counts.
     """
+    if should_use_hermes_tweet(backend):
+        clean_handle = handle.lstrip("@")
+        log.debug("hermes tweet user_tweets handle=%r limit=%d", clean_handle, limit)
+        return await fetch_hermes_tweets(f"from:{clean_handle}", limit)
+
     client = await get_client()
     log.debug("user_tweets handle=%r limit=%d", handle, limit)
     try:
