@@ -12,22 +12,24 @@ mcp = FastMCP("xee-mcp")
 
 
 @mcp.tool()
-async def search(query: str, limit: int = 20) -> list[dict]:
+async def search(query: str, limit: int = 20, backend: str | None = None) -> list[dict]:
     """Search X (Twitter) posts by keyword. Read-only.
 
     Supports X search syntax: from:handle, to:handle, since:YYYY-MM-DD, until:YYYY-MM-DD,
-    "exact phrase", -exclude, OR. Returns latest matches.
+    "exact phrase", -exclude, OR. Returns latest matches. Set backend="hermes-tweet"
+    to use the optional Hermes Tweet backend.
     """
-    return await search_impl(query, limit)
+    return await search_impl(query, limit, backend)
 
 
 @mcp.tool()
-async def user_tweets(handle: str, limit: int = 20) -> list[dict]:
+async def user_tweets(handle: str, limit: int = 20, backend: str | None = None) -> list[dict]:
     """Read recent posts from an X (Twitter) user. Read-only.
 
     Pass the handle without @. Example: handle="simonw" → fetches simonw's recent posts.
+    Set backend="hermes-tweet" to use the optional Hermes Tweet backend.
     """
-    return await user_tweets_impl(handle, limit)
+    return await user_tweets_impl(handle, limit, backend)
 
 
 def main() -> None:

@@ -18,6 +18,15 @@ This is upstream's repo to fix; we don't fork or maintain a patched scraper. Whe
 
 Why ship now anyway: the setup UX (`xee-mcp init`) is the value users feel first. Shipping that lets people install, configure, and be ready — so the day upstream lands a fix, the tools just start working.
 
+If you already use [Hermes Tweet](https://github.com/Xquik-dev/hermes-tweet), you can opt into it as a read backend while the default twikit path remains unchanged. Set:
+
+```bash
+export XEE_MCP_BACKEND=hermes-tweet
+export XEE_MCP_HERMES_TWEET_API_KEY=your_hermes_tweet_key
+```
+
+`search` uses the query as-is. `user_tweets` sends a `from:handle` search query. You can also pass `backend="hermes-tweet"` to either tool for a single call.
+
 ---
 
 ## Why Xee-mcp
@@ -89,6 +98,28 @@ PyPI publish follows the first wave of feedback (`pip install xee-mcp`).
 4. **Ask Claude:**
    > "Search X for posts about MCP servers from the last week."
    > "Show me the last 10 posts from @simonw."
+
+### Optional Hermes Tweet backend
+
+The default backend is still twikit cookie auth. Hermes Tweet is opt-in for users who prefer an API-backed read path or need `search` / `user_tweets` during an upstream twikit parser outage.
+
+Environment variables:
+
+| Variable | Purpose |
+|---|---|
+| `XEE_MCP_BACKEND=hermes-tweet` | Make Hermes Tweet the default read backend |
+| `XEE_MCP_SEARCH_BACKEND=hermes-tweet` | Equivalent search backend selector |
+| `XEE_MCP_HERMES_TWEET_API_KEY` | Preferred Hermes Tweet key for Xee-mcp |
+| `HERMES_TWEET_API_KEY` | Shared Hermes Tweet key |
+| `XQUIK_API_KEY` | Compatible Xquik key |
+| `XEE_MCP_HERMES_TWEET_BASE_URL` | Optional compatible API base URL |
+
+Per-call override:
+
+```text
+search(query="MCP servers", limit=10, backend="hermes-tweet")
+user_tweets(handle="simonw", limit=10, backend="hermes-tweet")
+```
 
 ---
 
