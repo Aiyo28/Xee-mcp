@@ -11,7 +11,7 @@
 4. When twikit ships 2.3.4+ parser fix: bump dep in pyproject.toml, delete README "Status (v0.1.0)" block, ship v0.1.1.
 
 ## When resuming
-1. `~/Documents/Developer/Xee-mcp` — master at `d1e7672`, clean tree.
+1. `~/Documents/Developer/Xee-mcp` — master at `a1b85ca`; run `git status` first — the working tree may have uncommitted changes.
 2. No active edits in progress. Either file upstream issues, tag + publish, or move to next project.
 
 ## Optional cleanup (manual)

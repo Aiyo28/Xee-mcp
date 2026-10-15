@@ -23,14 +23,6 @@
 - Multi-account cookie pool — only if v0.1/v0.2 hit reliable bot-detection. Likely path: swap twikit → twscrape internally, keep tool surface identical.
 - `analytics_summary(handle)` — top-engagement post pattern extraction. Only if community asks.
 
-## Out of scope (forever, unless invalidated)
+## Out of scope
 
-- Posting / DMs / likes / retweets. Different threat model. New repo if ever.
-- Web dashboard. Xee-mcp is a primitive, not a product.
-- Paid X API integration. Wrong shape for this tool's audience.
-
-## Invalidation triggers
-
-- twikit cookie auth bot-detected within first 50 calls in real use → swap twscrape, keep tool surface (D1 in vault).
-- Xee-mcp scope grows to ≥3 global-platform connectors AND wants Yzel's vault → extract `yzel-core` shared library or fold into Yzel (D1 fallback).
-- X reverses Feb 2026 pay-per-use pricing back to free tier → revisit official API path; cookie auth may become unnecessary.
+See [ADR 0005](docs/adr/0005-scope-boundaries.md).

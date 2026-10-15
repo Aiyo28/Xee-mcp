@@ -12,7 +12,7 @@
 
 ## Status (v0.1.0)
 
-`xee-mcp init` (cookie setup) works. `search` and `user_tweets` are **temporarily degraded** — they return a clear "upstream parser broken" error because [twikit](https://github.com/d60/twikit) (the underlying scrape library) can't parse X's current webpack chunk format to build the `X-Client-Transaction-Id` header. This is **not** a cookie problem — your auth is fine.
+*As of 2026-05-20 (upstream breakage found 2026-05-18; not re-checked since).* `xee-mcp init` (cookie setup) works. `search` and `user_tweets` are **temporarily degraded** — they return a clear "upstream parser broken" error because [twikit](https://github.com/d60/twikit) (the underlying scrape library) can't parse X's current webpack chunk format to build the `X-Client-Transaction-Id` header. This is **not** a cookie problem — your auth is fine.
 
 This is upstream's repo to fix; we don't fork or maintain a patched scraper. When twikit ships a parser fix, bump the dep and these tools resume working with no code change on your side. See [docs/upstream-issues.md](docs/upstream-issues.md) for the technical details.
 

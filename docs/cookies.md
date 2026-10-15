@@ -32,7 +32,7 @@ uv run xee-mcp init --out ~/somewhere/else.json
 
 To overwrite an existing file, pass `--force`.
 
-**macOS Keychain prompt.** Chrome / Brave / Edge encrypt their cookie store; the first run triggers a single Keychain prompt to decrypt it. Approve it. (Firefox and Arc don't prompt — their cookie stores are unencrypted on disk.)
+**macOS Keychain prompt.** Chrome / Brave / Edge encrypt their cookie store; the first run triggers a single Keychain prompt to decrypt it. Approve it. (Firefox doesn't prompt — its cookie store is unencrypted on disk. Arc is Chromium-based, so expect the same prompt as Chrome.)
 
 **Prerequisite:** you must already be logged in to x.com in that browser. If you aren't, `init` fails with a clear "no logged-in x.com session" message — log in via the browser, retry.
 
