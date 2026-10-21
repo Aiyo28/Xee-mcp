@@ -2,20 +2,71 @@
 
 > MCP (Model Context Protocol) server that exposes two read-only tools for X (Twitter) to AI assistants: `search` and `user_tweets`. Uses cookie-based authentication via twikit — no paid X API, no per-request fees. Naming: X + See = Xee. Single-account, read-only, focused. MIT licensed, donation-only via paypal.me/aiyo28.
 
+This file is written for AI coding assistants. It is enough to wire up and call Xee-mcp
+without reading the source. Copy the shapes below; do not invent tools, arguments, or
+response fields that are not listed here.
+
+## Status (v0.1.0)
+
+**Read tools are currently degraded by an upstream twikit issue.** twikit's
+`ON_DEMAND_FILE_REGEX` cannot parse X's current webpack chunk format, so the
+`X-Client-Transaction-Id` header cannot be built and calls fail. This is not an auth problem
+and re-authenticating will not fix it. The server routes these errors separately and says so
+in the message. When twikit ships a parser fix, bumping the dependency resumes both tools with
+no code change. See `docs/upstream-issues.md`.
+
 ## What it does
 
 `Xee-mcp` lets Claude, ChatGPT, or any MCP-compatible AI assistant search X posts and read user timelines without paying for the X API. It is a deliberately minimal alternative to mcp-twikit, official xmcp, and other Twitter/X MCP servers.
 
 ## Tools
 
-- `search(query: str, limit: int = 20)` — Search X posts by keyword. Returns text, author, timestamp, URL, engagement.
-- `user_tweets(handle: str, limit: int = 20)` — Read a user's recent posts. Same return shape as search.
+- `search(query: str, limit: int = 20)` — Search X posts by keyword. Supports X search syntax (`from:`, `to:`, `since:YYYY-MM-DD`, `until:YYYY-MM-DD`, `"exact phrase"`, `-exclude`, `OR`). Always sorted Latest.
+- `user_tweets(handle: str, limit: int = 20)` — Read a user's recent posts. Handle without `@` (a leading `@` is stripped for you).
+
+## Response shape
+
+Both tools return a list of dicts, same shape:
+
+```json
+{
+  "id": "1234567890",
+  "text": "post body",
+  "author": "simonw",
+  "author_name": "Simon Willison",
+  "created_at": "Tue May 20 09:14:02 +0000 2026",
+  "url": "https://x.com/simonw/status/1234567890",
+  "reply_count": 3,
+  "retweet_count": 12,
+  "favorite_count": 88,
+  "view_count": 4201
+}
+```
+
+## Behaviour contract (important for correct code)
+
+- **Every field is nullable except the engagement counts.** `id`, `text`, `author`,
+  `author_name`, `url`, and `view_count` fall back to `None` when the upstream object does not
+  carry them. `reply_count` / `retweet_count` / `favorite_count` default to `0`. Guard before
+  you index.
+- **`limit` is a ceiling, not a guarantee.** Results are truncated client-side; X may return
+  fewer than asked, and returning an empty list is a normal outcome, not an error.
+- **`search` is Latest-only.** Ranking mode is hardcoded; there is no Top / People / Media
+  parameter to pass.
+- **One account per process.** The twikit client is a module-level singleton and cookies load
+  once, on the first tool call. Changing `XEE_MCP_COOKIES` afterwards has no effect until the
+  process restarts.
+- **Failures raise `RuntimeError` with an actionable preamble**, not a silent empty list. The
+  message distinguishes upstream-library breakage from a genuine cookie failure — read which
+  one it says before acting.
+- **Read-only, by name and by design.** There is no write path to add to.
 
 ## Auth
 
 - twikit cookie file (single account). Path via `XEE_MCP_COOKIES` env var.
 - No X API key. No OAuth. No rate-limit billing.
 - Tradeoff: cookie auth is brittle. Bot-detection risk exists at higher volume.
+- `XEE_MCP_DEBUG=1` sends debug logging to stderr; unset, the logger is a null handler.
 
 ## Install
 
@@ -24,6 +75,19 @@ git clone https://github.com/Aiyo28/Xee-mcp.git
 cd Xee-mcp
 uv sync
 ```
+
+## CLI
+
+```
+xee-mcp init [--browser chrome|brave|arc|firefox|safari|edge] [--out PATH] [--force]
+xee-mcp serve
+```
+
+- `init` extracts X cookies from a logged-in local browser into a twikit-compatible JSON file
+  and `chmod 600`s it. Default browser `chrome`, default output `~/.config/xee-mcp/cookies.json`.
+  On macOS, Chrome / Brave / Edge trigger a Keychain prompt to decrypt the cookie store —
+  approve it. `--force` overwrites an existing file.
+- `serve` runs the MCP server over stdio. Bare `xee-mcp` with no subcommand does the same.
 
 ## Wire into Claude Desktop or Claude Code
 
@@ -53,10 +117,24 @@ Add to `claude_desktop_config.json`:
 - `src/xee_mcp/server.py` — MCP server entrypoint, tool registration
 - `src/xee_mcp/client.py` — twikit wrapper, cookie loading
 - `src/xee_mcp/tools.py` — `search` and `user_tweets` implementations
+- `src/xee_mcp/cli.py` — `init` / `serve` console script
 - `tests/` — pytest suite
 - `README.md` — public-facing pitch
 - `ROADMAP.md` — public scope evolution
+- `docs/cookies.md` — cookie setup · `docs/upstream-issues.md` — current twikit breakage
 - `CLAUDE.md` — agent session protocol for contributors using Claude Code
+
+## Common mistakes to avoid
+
+- Do not read an error mentioning `KEY_BYTE`, `x_client_transaction`, or `ON_DEMAND_FILE` as an
+  auth failure. That is the upstream twikit parser; re-running `xee-mcp init` will not help.
+- Do not assume `text`, `author`, or `url` are present. Every one of them can be `None`.
+- Do not treat an empty list as a failure, or `limit` as a promised count.
+- Do not hand-write the cookie JSON. `xee-mcp init` builds it in the right format and sets the
+  file mode; a hand-rolled file is the most common setup failure.
+- Do not point `XEE_MCP_COOKIES` at a new file mid-process and expect it to take. Restart.
+- Do not expect Top-ranked or algorithmic search results — Latest is the only mode.
+- Do not add a posting, liking, or DM tool. The read-only surface is the threat model.
 
 ## Sibling project
 
