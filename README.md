@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Aiyo28/Xee-mcp/master/docs/assets/banner.jpg" alt="Xee: the view through binoculars onto a feed of X posts" width="100%">
+</p>
+
 # Xee-mcp — MCP server for X (Twitter): search + read, no paid API
 
 > **What is Xee-mcp?** It's a [Model Context Protocol](https://modelcontextprotocol.io) server that gives Claude, ChatGPT, and other AI assistants two read-only tools for X (Twitter): **search posts** and **read a user's timeline**. It uses cookie-based auth via [twikit](https://github.com/d60/twikit) — no X API keys, no pay-per-use fees.
