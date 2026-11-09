@@ -16,7 +16,7 @@
 
 ## Status (v0.1.0)
 
-`xee-mcp init` (cookie setup) works. `search` and `user_tweets` are **temporarily degraded** — they return a clear "upstream parser broken" error because [twikit](https://github.com/d60/twikit) (the underlying scrape library) can't parse X's current webpack chunk format to build the `X-Client-Transaction-Id` header. This is **not** a cookie problem — your auth is fine.
+`xee-mcp init` (cookie setup) works. `search` and `user_tweets` are **temporarily degraded** — they return a failure result with `"class": "upstream"` because [twikit](https://github.com/d60/twikit) (the underlying scrape library) can't parse X's current webpack chunk format to build the `X-Client-Transaction-Id` header. This is **not** a cookie problem — your auth is fine.
 
 This is upstream's repo to fix; we don't fork or maintain a patched scraper. When twikit ships a parser fix, bump the dep and these tools resume working with no code change on your side. See [docs/upstream-issues.md](docs/upstream-issues.md) for the technical details.
 
@@ -26,17 +26,20 @@ Why ship now anyway: the setup UX (`xee-mcp init`) is the value users feel first
 
 ## Why Xee-mcp
 
-Six MCP servers for X already exist. Most require the [paid X API](https://docs.x.com/x-api/getting-started/about-x-api) — pay-per-use since Feb 2026, ~$0.005 per read. For solo developers and OSS authors who just want to let Claude search what's being said about their work, that's wrong shape.
+Several MCP servers for X already exist. Most require the [paid X API](https://docs.x.com/x-api/getting-started/about-x-api) — pay-per-use since Feb 2026, ~$0.005 per read. For solo developers and OSS authors who just want to let Claude search what's being said about their work, that's wrong shape.
 
 `Xee-mcp` solves one job: read X with zero API cost. Cookie auth via twikit, two tools, one MCP server. That's it.
 
-| | Xee-mcp | [mcp-twikit](https://github.com/adhikasp/mcp-twikit) | [official xmcp](https://github.com/xdevplatform/xmcp) | [Infatoshi/x-mcp](https://github.com/Infatoshi/x-mcp) |
-|---|---|---|---|---|
-| Auth | Cookie (twikit) | Cookie (twikit) | OAuth 2.0 | OAuth 1.0a |
-| API cost | $0 | $0 | Pay-per-use | Pay-per-use |
-| Scope | Read + search only | Read + search + post + DMs | Full | Full |
-| Tools count | 2 (focused) | ~10+ | ~10+ | ~10+ |
-| Goal | Minimal, solo-OSS friendly | Power user | Production | Production |
+| | Xee-mcp | [crossbar](https://github.com/prantikmedhi/crossbar) | [mcp-twikit](https://github.com/adhikasp/mcp-twikit) | [official xmcp](https://github.com/xdevplatform/xmcp) | [Infatoshi/x-mcp](https://github.com/Infatoshi/x-mcp) |
+|---|---|---|---|---|---|
+| Auth | Cookie (twikit) | Browser session (api-anything) | Cookie (twikit) | OAuth 2.0 | OAuth 1.0a |
+| API cost | $0 | $0 | $0 | Pay-per-use | Pay-per-use |
+| Scope | Read + search only, no write code | Read + write (`--read-only` flag) | Read + search + post + DMs | Full | Full |
+| Tools count | 2 (focused) | 27 | ~10+ | ~10+ | ~10+ |
+| Runtime | Python 3.11+ | Node 22.13+ | Python | Python | Python |
+| Goal | Minimal, solo-OSS friendly | Your whole account for agents | Power user | Production | Production |
+
+**Need reads that work today?** While twikit is broken (see Status), [crossbar](https://github.com/prantikmedhi/crossbar) is the closest no-API option: `crossbar setup --read-only` registers no write tools. Its Claude Code plugin install does include them.
 
 If you want posting, DMs, or production-grade reliability — use one of the others. If you want **the smallest thing that lets Claude see X for you**, use `Xee-mcp`.
 
@@ -51,6 +54,22 @@ Search X posts by keyword. Returns text, author, timestamp, URL, and engagement 
 Read a user's recent posts. Returns the same fields.
 
 That's the v0.1 surface. Two tools. Read-only. No surprises.
+
+### When a tool can't answer
+
+It returns `isError: true` with a JSON body your assistant can act on:
+
+```json
+{ "ok": false, "class": "auth", "reason": "…", "next": "No usable cookie file. Run: xee-mcp init, …" }
+```
+
+| `class` | Means | What to do |
+|---|---|---|
+| `auth` | Cookie file missing, expired or rejected | `xee-mcp init --force` |
+| `upstream` | The scrape library broke against X; cookies are fine | Wait for the fix (see Status). Don't re-auth |
+| `input` | Empty query, `limit < 1`, or not a valid handle | Fix the arguments |
+| `blocked` | X is rate-limiting this session | Wait ~15 min. Don't retry in a loop |
+| `error` | Anything else | Retry once, then rerun with `XEE_MCP_DEBUG=1` and open an issue |
 
 ---
 
@@ -77,18 +96,12 @@ PyPI publish follows the first wave of feedback (`pip install xee-mcp`).
    ```
    On macOS Chrome / Brave / Edge you'll see one Keychain prompt — approve it. For other browsers use `--browser brave|arc|firefox|safari|edge`. Other setup paths (advanced / headless) are in [docs/cookies.md](docs/cookies.md).
 
-3. **Wire into Claude Desktop / Claude Code.** Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
-   ```json
-   {
-     "mcpServers": {
-       "xee-mcp": {
-         "command": "uv",
-         "args": ["run", "--directory", "/path/to/Xee-mcp", "xee-mcp"],
-         "env": { "XEE_MCP_COOKIES": "/path/to/cookies.json" }
-       }
-     }
-   }
+3. **Wire into your client.** Print the config with absolute paths filled in. GUI apps like Claude Desktop and Cursor don't load your shell `PATH`, so a bare `uv` or `xee-mcp` often fails to start there:
+   ```bash
+   uv run xee-mcp config                        # Claude Desktop, Claude Code and Cursor
+   uv run xee-mcp config --client claude-code   # one client: claude-desktop | claude-code | cursor
    ```
+   Paste the JSON into `claude_desktop_config.json` (or `~/.cursor/mcp.json`), or run the printed `claude mcp add` line. It prints only; no file is written. Prefer to write it by hand? See [examples/](examples/).
 
 4. **Ask Claude:**
    > "Search X for posts about MCP servers from the last week."

@@ -2,18 +2,15 @@
 
 > Resume line for the next session. Under 15 lines.
 
-**Status (2026-05-20):** 🟡 SHIP-READY — v0.1.0 scoped to thin MCP info-aggregation wrapper. Two commits shipped + pushed to master: `05f1195` (cookie UX: `xee-mcp init` via browser-cookie3, no extension/paste/password), `d1e7672` (degraded read tools + honest README Status block + error routing distinguishes upstream-lib breakage from cookie failure). GH repo description + Aiyo28/portfolio_2.0 data.json both updated + pushed to mirror the new "thin aggregator" framing. 29/29 tests, ruff clean.
+**Status (2026-11-09):** ⏸️ Paused ([D]#5328, resume with Yzel's OSS block). master `052bbb4`, pushed. Read tools still blocked upstream (twikit).
 
-## Phase C (ship) — left to do
-1. File upstream issues from `docs/upstream-issues.md` drafts (twikit + twscrape repos). Cheap insurance; both repos ~13mo dead so don't expect fast response.
-2. `git tag v0.1.0 && gh release create v0.1.0 --generate-notes`.
-3. USER runs `uv publish` (PyPI token must be in your shell, never in repo).
-4. When twikit ships 2.3.4+ parser fix: bump dep in pyproject.toml, delete README "Status (v0.1.0)" block, ship v0.1.1.
+## Continue
+1. Spec: `docs/specs/CROSSBAR_STEALS_SPEC.md`. Slices 3 (failure results) + 4 (`xee-mcp config`) done in `052bbb4`.
+2. Next: slice 1, a live `api-anything call` spike with your cookies, then `/decide` (swap the backend vs archive). Unblocks 2 → 5 → 6.
 
-## When resuming
-1. `~/Documents/Developer/Xee-mcp` — master at `d1e7672`, clean tree.
-2. No active edits in progress. Either file upstream issues, tag + publish, or move to next project.
+## Decide
+- Plugin cookie path when `XEE_MCP_COOKIES` is unset (spec Further Notes). Needed before slice 5.
+- `[S]`#11 stateless vs legacy MCP spec. Gates the v0.1.0 tag.
 
-## Optional cleanup (manual)
-- `unset UV_PUBLISH_TOKEN` if still in shell env from May.
-- x.com → Settings → Sessions → Log out other sessions to rotate cookies if not already done.
+## Context
+- Compare: vault `Knowledge/Competitors/Xee-mcp vs crossbar.md`.
