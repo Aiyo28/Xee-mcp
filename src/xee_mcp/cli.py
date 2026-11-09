@@ -1,7 +1,9 @@
 """Xee-mcp CLI dispatcher.
 
-Two subcommands:
+Three subcommands:
   - `xee-mcp init` — extract X cookies from a local browser, write twikit JSON
+  - `xee-mcp config` — print the client config for Claude Desktop / Claude Code / Cursor with
+    absolute paths filled in (prints only, writes no file)
   - `xee-mcp serve` — run the MCP server (also the default when invoked with no subcommand,
     preserving Claude Desktop / Claude Code configs that point at bare `xee-mcp`)
 """
@@ -10,6 +12,8 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
+import shutil
 import sys
 from pathlib import Path
 
@@ -19,6 +23,7 @@ DEFAULT_COOKIE_PATH = Path("~/.config/xee-mcp/cookies.json")
 X_HOSTS = {"x.com", ".x.com", "twitter.com", ".twitter.com"}
 REQUIRED_COOKIES = ("auth_token", "ct0")
 SUPPORTED_BROWSERS = ("chrome", "brave", "arc", "firefox", "safari", "edge")
+CLIENTS = ("claude-desktop", "claude-code", "cursor")
 
 
 @click.group(invoke_without_command=True)
@@ -98,6 +103,83 @@ def init(browser: str, out_path: Path, force: bool) -> None:
     click.echo(f"  export XEE_MCP_COOKIES={out}")
     click.echo("  xee-mcp serve   # or wire into Claude Desktop / Claude Code")
 
+
+
+@main.command()
+@click.option(
+    "--client",
+    type=click.Choice(CLIENTS, case_sensitive=False),
+    default=None,
+    help="Print only this client's config, ready to paste. Default: all three, with headers.",
+)
+@click.option(
+    "--cookies",
+    "cookies_opt",
+    type=click.Path(dir_okay=False, path_type=Path),
+    default=None,
+    help="Cookie file path. Default: $XEE_MCP_COOKIES, else the path `init` writes to.",
+)
+def config(client: str | None, cookies_opt: Path | None) -> None:
+    """Print the config a client needs to launch Xee-mcp, with absolute paths.
+
+    GUI clients (Claude Desktop, Cursor) do not load your shell PATH, so a bare `xee-mcp` or
+    `uv` command often fails to start there. This prints full paths instead. Writes no file.
+    """
+    command, args = _launch_command()
+    cookies = _cookie_path(cookies_opt)
+    if not cookies.exists():
+        click.echo(f"Note: {cookies} does not exist yet. Run: xee-mcp init", err=True)
+
+    if client:
+        click.echo(_client_config(client.lower(), command, args, cookies))
+        return
+    for name in CLIENTS:
+        click.echo(f"# {_CLIENT_HEADERS[name]()}")
+        click.echo(_client_config(name, command, args, cookies))
+        click.echo("")
+
+
+def _launch_command() -> tuple[str, list[str]]:
+    """Absolute command + args that start the server: the `xee-mcp` script, else this Python."""
+    script = shutil.which("xee-mcp")
+    if script:
+        return str(Path(script).absolute()), []
+    return sys.executable, ["-m", "xee_mcp.cli"]
+
+
+def _cookie_path(explicit: Path | None) -> Path:
+    raw = explicit or os.environ.get("XEE_MCP_COOKIES") or DEFAULT_COOKIE_PATH
+    return Path(raw).expanduser().absolute()
+
+
+def _client_config(client: str, command: str, args: list[str], cookies: Path) -> str:
+    """One client's config: a `claude mcp add` line for Claude Code, mcpServers JSON otherwise."""
+    if client == "claude-code":
+        argv = ["claude", "mcp", "add", "--scope", "user", "xee-mcp",
+                "-e", f"XEE_MCP_COOKIES={cookies}", "--", command, *args]
+        return " ".join(shlex.quote(part) for part in argv)
+    entry: dict[str, object] = {"command": command}
+    if args:
+        entry["args"] = args
+    entry["env"] = {"XEE_MCP_COOKIES": str(cookies)}
+    return json.dumps({"mcpServers": {"xee-mcp": entry}}, indent=2)
+
+
+def _claude_desktop_header() -> str:
+    if sys.platform == "darwin":
+        where = "~/Library/Application Support/Claude/claude_desktop_config.json"
+    elif sys.platform == "win32":
+        where = r"%APPDATA%\Claude\claude_desktop_config.json"
+    else:
+        where = "~/.config/Claude/claude_desktop_config.json"
+    return f"Claude Desktop: merge into {where}, then quit it fully and reopen"
+
+
+_CLIENT_HEADERS = {
+    "claude-desktop": _claude_desktop_header,
+    "claude-code": lambda: "Claude Code: run in a terminal, then /mcp to check it is connected",
+    "cursor": lambda: "Cursor: merge into ~/.cursor/mcp.json, then reload the window",
+}
 
 def _load_browser_jar(browser: str):
     """Return a CookieJar from the requested browser, scoped to x.com.
